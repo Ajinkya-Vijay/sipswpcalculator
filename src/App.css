@@ -1,0 +1,254 @@
+:root {
+  color: #1d2533;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #eef7ff;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: #eef7ff;
+  color: #1f2937;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.app-shell {
+  width: min(100%, 460px);
+  margin: 0 auto;
+  padding: 24px 16px 32px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 28px;
+  padding: 22px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.09);
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #2563eb;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 4vw, 2.4rem);
+  line-height: 1.05;
+}
+
+.tab-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 24px 0 20px;
+}
+
+.tab {
+  border: none;
+  background: #f3f9ff;
+  color: #2563eb;
+  padding: 14px 0;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.tab:hover {
+  transform: translateY(-1px);
+}
+
+.tab.active {
+  background: #d7f7e8;
+  color: #065f46;
+}
+
+.panel {
+  background: #f8fcff;
+  border: 1px solid rgba(96, 165, 250, 0.18);
+  border-radius: 24px;
+  padding: 18px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.panel-label {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.panel-value {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.slider-group {
+  margin-bottom: 20px;
+}
+
+.slider-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.slider-title {
+  margin: 0;
+  font-size: 0.94rem;
+  color: #374151;
+}
+
+.slider-value-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-number-input {
+  width: 120px;
+  min-width: 100px;
+  appearance: none;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 14px;
+  background: #f8fcff;
+  color: #111827;
+  font: inherit;
+  font-weight: 700;
+  padding: 10px 12px;
+}
+
+.slider-number-input:focus {
+  outline: 2px solid rgba(34, 197, 94, 0.3);
+}
+
+.slider-value-large {
+  margin: 0;
+  font-weight: 700;
+  color: #111827;
+}
+
+input[type='range'] {
+  width: 100%;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #22c55e 0%, #22c55e 50%, #dbeafe 50%, #dbeafe 100%);
+  outline: none;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #22c55e;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.28);
+  cursor: pointer;
+  margin-top: -8px;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #22c55e;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.28);
+  cursor: pointer;
+}
+
+.slider-meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-top: 6px;
+}
+
+.results-card {
+  margin-top: 20px;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 18px;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.result-label {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.result-value {
+  margin: 0;
+  font-weight: 700;
+  color: #111827;
+}
+
+.result-value.highlight {
+  color: #16a34a;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(15, 23, 42, 0.08);
+  margin: 12px 0;
+  border-radius: 999px;
+}
+
+.total-row {
+  margin-bottom: 0;
+}
+
+@media (max-width: 380px) {
+  .card {
+    padding: 18px;
+  }
+
+  .tab-bar {
+    gap: 8px;
+  }
+
+  .tab {
+    padding: 12px 0;
+    font-size: 0.9rem;
+  }
+}
