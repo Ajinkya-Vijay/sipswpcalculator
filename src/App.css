@@ -51,6 +51,36 @@ h1 {
   margin: 0;
   font-size: clamp(1.7rem, 4vw, 2.4rem);
   line-height: 1.05;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.view-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin: 24px 0 20px;
+  padding: 4px;
+  background: #eaf2f8;
+  border-radius: 16px;
+}
+
+.view-toggle-option {
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #64748b;
+  padding: 11px 8px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.view-toggle-option.active {
+  background: #ffffff;
+  color: #065f46;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
 }
 
 .tab-bar {

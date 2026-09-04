@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import './App.css'
 
 const formatNumber = (value) => Number(value).toLocaleString('en-IN')
@@ -57,6 +57,7 @@ const calcSwp = (principal, withdrawalMonthly, rate, years) => {
 }
 
 function App() {
+  const [calculatorView, setCalculatorView] = useState('investment')
   const [mode, setMode] = useState('sip')
   const [monthly, setMonthly] = useState(25000)
   const [rate, setRate] = useState(12)
@@ -64,32 +65,39 @@ function App() {
   const [lumpsum, setLumpsum] = useState(3000000)
   const [swpWithdrawal, setSwpWithdrawal] = useState(10000)
   const [swpYears, setSwpYears] = useState(5)
-  const [swpPrincipal, setSwpPrincipal] = useState(0)
+  const [swpPrincipal, setSwpPrincipal] = useState(3000000)
   const [swpPrincipalEdited, setSwpPrincipalEdited] = useState(false)
 
   const sipResult = useMemo(() => calcSip(monthly, rate, years), [monthly, rate, years])
   const lumpsumResult = useMemo(() => calcLumpsum(lumpsum, rate, years), [lumpsum, rate, years])
   const result = mode === 'sip' ? sipResult : lumpsumResult
 
-  useEffect(() => {
-    if (!swpPrincipalEdited) {
-      setSwpPrincipal(result.total)
-    }
-  }, [result.total, swpPrincipalEdited])
-
-  const swpResult = useMemo(() => calcSwp(swpPrincipal, swpWithdrawal, rate, swpYears), [swpPrincipal, swpWithdrawal, rate, swpYears])
+  const activeSwpPrincipal = calculatorView === 'investment' && !swpPrincipalEdited
+    ? result.total
+    : swpPrincipal
+  const swpResult = useMemo(() => calcSwp(activeSwpPrincipal, swpWithdrawal, rate, swpYears), [activeSwpPrincipal, swpWithdrawal, rate, swpYears])
 
   return (
     <main className="app-shell">
       <section className="card">
-        <div className="tab-bar">
-          <button className={`tab ${mode === 'sip' ? 'active' : ''}`} onClick={() => setMode('sip')}>
-            SIP
+        <header className="app-header">
+          <p className="eyebrow">SIP, Lumpsum &amp; SWP planner</p>
+          <h1>From Investment to Withdrawal</h1>
+        </header>
+
+        <div className="view-toggle" role="group" aria-label="Calculator view">
+          <button
+            className={`view-toggle-option ${calculatorView === 'investment' ? 'active' : ''}`}
+            onClick={() => setCalculatorView('investment')}
+          >
+            Investment + SWP
           </button>
-          <button className={`tab ${mode === 'lumpsum' ? 'active' : ''}`} onClick={() => setMode('lumpsum')}>
-            Lumpsum
+          <button
+            className={`view-toggle-option ${calculatorView === 'swp' ? 'active' : ''}`}
+            onClick={() => setCalculatorView('swp')}
+          >
+            SWP only
           </button>
-          
         </div>
 
         <div className="panel">
@@ -98,7 +106,17 @@ function App() {
             <p className="panel-value">{mode === 'sip' ? formatCurrency(monthly) : formatCurrency(lumpsum)}</p>
           </div> */}
 
-            <>
+            {calculatorView === 'investment' && (
+              <>
+                <div className="tab-bar">
+                  <button className={`tab ${mode === 'sip' ? 'active' : ''}`} onClick={() => setMode('sip')}>
+                    SIP
+                  </button>
+                  <button className={`tab ${mode === 'lumpsum' ? 'active' : ''}`} onClick={() => setMode('lumpsum')}>
+                    Lumpsum
+                  </button>
+                </div>
+
               <div className="slider-group">
                 <div className="slider-row">
                   <p className="slider-title">{mode === 'sip' ? 'Monthly investment' : 'Lumpsum amount'}</p>
@@ -239,11 +257,12 @@ function App() {
             <p className="result-value">{formatCurrency(result.total)}</p>
           </div>
         </div>
+              </>
+            )}
 
-              {(mode === 'sip' || mode === 'lumpsum') && (
-                <>
+              <>
                   <div className="swp-section">
-                    <h3>Systematic Withdrawal Plan (SWP)</h3>
+                    <h3>{calculatorView === 'swp' ? 'SWP calculator' : 'Systematic Withdrawal Plan (SWP)'}</h3>
                     <div className="slider-group">
                       <div className="slider-row">
                         <p className="slider-title">Total investment</p>
@@ -254,7 +273,7 @@ function App() {
                             min={0}
                             max={100000000}
                             step={1000}
-                            value={Math.round(swpPrincipal)}
+                            value={Math.round(activeSwpPrincipal)}
                             onChange={(event) => {
                               const value = Number(event.target.value)
                               if (!Number.isNaN(value)) {
@@ -262,7 +281,7 @@ function App() {
                                 setSwpPrincipalEdited(true)
                               }
                             }}
-                            onBlur={() => setSwpPrincipal(clamp(Math.round(swpPrincipal), 0, 100000000))}
+                            onBlur={() => setSwpPrincipal(clamp(Math.round(activeSwpPrincipal), 0, 100000000))}
                           />
                         </div>
                       </div>
@@ -335,16 +354,13 @@ function App() {
                       </div>
                     </div>
                   </div>
-                </>
-              )}
-            </>
+              </>
         </div>
 
-        {(mode === 'sip' || mode === 'lumpsum') && (
-          <div className="results-card swp-results">
+        <div className="results-card swp-results">
             <div className="result-row">
               <p className="result-label">Total investment</p>
-              <p className="result-value">{formatCurrency(result.total)}</p>
+              <p className="result-value">{formatCurrency(activeSwpPrincipal)}</p>
             </div>
             <div className="result-row">
               <p className="result-label">Total withdrawal</p>
@@ -355,8 +371,7 @@ function App() {
               <p className="result-label">Final value</p>
               <p className="result-value">{formatCurrency(swpResult.finalValue)}</p>
             </div>
-          </div>
-        )}
+        </div>
       </section>
     </main>
   )
