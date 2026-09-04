@@ -17,7 +17,7 @@
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
-  color-scheme: light dark;
+  color-scheme: light;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -55,7 +55,7 @@ body {
 }
 
 #root {
-  width: min(100%, 460px);
+  width: 100%;
   max-width: 100%;
   margin: 0 auto;
   text-align: center;
@@ -63,8 +63,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 20px 0;
+  justify-content: flex-start;
+  padding: 20px 0 48px;
   box-sizing: border-box;
 }
 
@@ -95,6 +95,12 @@ h2 {
 }
 p {
   margin: 0;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 2px;
 }
 
 code,

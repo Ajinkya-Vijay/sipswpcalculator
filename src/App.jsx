@@ -77,12 +77,44 @@ function App() {
     : swpPrincipal
   const swpResult = useMemo(() => calcSwp(activeSwpPrincipal, swpWithdrawal, rate, swpYears), [activeSwpPrincipal, swpWithdrawal, rate, swpYears])
 
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebApplication',
+        name: 'SIP and SWP Calculator',
+        url: 'https://sipswpcalculator.online/',
+        applicationCategory: 'FinanceApplication',
+        operatingSystem: 'Any',
+        description: 'Free calculator for estimating SIP growth, lumpsum returns and SWP withdrawals in India.',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' },
+      },
+      {
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: 'What is a SIP calculator?',
+            acceptedAnswer: { '@type': 'Answer', text: 'A SIP calculator estimates the future value of regular monthly investments using an assumed annual return rate and investment period.' },
+          },
+          {
+            '@type': 'Question',
+            name: 'What is an SWP calculator?',
+            acceptedAnswer: { '@type': 'Answer', text: 'An SWP calculator estimates total withdrawals and the remaining portfolio value when a fixed amount is withdrawn every month.' },
+          },
+        ],
+      },
+    ],
+  }
+
   return (
     <main className="app-shell">
+      <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       <section className="card">
         <header className="app-header">
-          <p className="eyebrow">SIP, Lumpsum &amp; SWP planner</p>
-          <h1>From Investment to Withdrawal</h1>
+          <p className="eyebrow">Free mutual fund planning tool</p>
+          <h1>SIP Calculator &amp; SWP Calculator</h1>
+          <p className="intro-copy">Estimate your SIP returns, lumpsum growth and systematic withdrawals in a few seconds.</p>
         </header>
 
         <div className="view-toggle" role="group" aria-label="Calculator view">
@@ -371,6 +403,22 @@ function App() {
               <p className="result-label">Final value</p>
               <p className="result-value">{formatCurrency(swpResult.finalValue)}</p>
             </div>
+        </div>
+      </section>
+
+      <section className="seo-content" aria-labelledby="about-calculators">
+        <h2 id="about-calculators">Plan investments with a SIP and SWP calculator</h2>
+        <p>Use this free SIP calculator to estimate how monthly mutual fund investments may grow over time. Enter your monthly investment, expected annual return and time period to see your invested amount, estimated returns and total value.</p>
+        <p>When you are ready to withdraw, use the SWP calculator to model a fixed monthly withdrawal from your investment. The estimate shows total withdrawals and the projected final value, helping you compare withdrawal plans before making financial decisions.</p>
+
+        <div className="faq-list">
+          <h2>Frequently asked questions</h2>
+          <h3>What is a SIP calculator?</h3>
+          <p>A SIP calculator is a planning tool that estimates the future value of regular monthly investments based on an assumed return rate. Actual mutual fund returns can vary.</p>
+          <h3>What is an SWP calculator?</h3>
+          <p>An SWP calculator estimates how much you withdraw over a chosen period and what may remain in the portfolio after monthly withdrawals and assumed growth.</p>
+          <h3>Are these calculator results guaranteed?</h3>
+          <p>No. These are illustrative estimates, not guaranteed returns or financial advice. Market-linked investments involve risk, so review your plan with a qualified financial professional.</p>
         </div>
       </section>
     </main>
