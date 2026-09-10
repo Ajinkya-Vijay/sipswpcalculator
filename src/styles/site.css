@@ -102,7 +102,7 @@ img {
 .site-header-inner {
   width: min(100%, var(--shell));
   margin: 0 auto;
-  padding: 10px var(--gutter);
+  padding: 8px var(--gutter);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -185,14 +185,21 @@ img {
 .app-shell {
   width: min(100%, var(--shell));
   margin: 0 auto;
-  padding: clamp(16px, 4vw, 28px) var(--gutter) clamp(40px, 8vw, 72px);
+  padding: clamp(10px, 1.6vw, 16px) var(--gutter) clamp(40px, 8vw, 72px);
 }
 
 /* Prose keeps a readable measure even once the shell is wide; the calculator
    and the link grid are free to use the whole width. */
 .page-intro,
-.seo-content,
 .faq {
+  max-width: var(--measure);
+  margin-inline: auto;
+}
+
+/* The article itself spans the shell and holds its prose children to the
+   measure individually, so a wide numeric table can use the full width
+   instead of being silently clipped inside a 70ch column. */
+.seo-content > :not(.table-wrap) {
   max-width: var(--measure);
   margin-inline: auto;
 }
@@ -220,22 +227,22 @@ img {
 
 .page-intro {
   text-align: center;
-  margin-bottom: clamp(20px, 4vw, 32px);
+  margin-bottom: clamp(10px, 1.4vw, 14px);
 }
 
 .eyebrow {
-  margin: 0 0 8px;
+  margin: 0 0 5px;
   color: var(--brand);
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 h1 {
   margin: 0;
-  font-size: clamp(1.65rem, 1.2rem + 2.2vw, 2.85rem);
-  line-height: 1.15;
+  font-size: clamp(1.45rem, 1.15rem + 1.1vw, 2rem);
+  line-height: 1.14;
   color: var(--ink-strong);
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -243,10 +250,10 @@ h1 {
 }
 
 .intro-copy {
-  margin: 12px auto 0;
-  max-width: 62ch;
+  margin: 8px auto 0;
+  max-width: 54ch;
   color: var(--ink-muted);
-  font-size: clamp(1rem, 0.97rem + 0.2vw, 1.1rem);
+  font-size: clamp(0.92rem, 0.9rem + 0.12vw, 1rem);
   text-wrap: pretty;
 }
 
@@ -355,6 +362,19 @@ h1 {
   text-align: right;
   border-bottom: 1px solid var(--line);
   white-space: nowrap;
+}
+
+/* Comparison tables hold sentences rather than figures. nowrap would force a
+   width no container can show, so these wrap and read left-aligned. */
+.table-wrap--prose table {
+  min-width: 0;
+}
+
+.table-wrap--prose th,
+.table-wrap--prose td {
+  white-space: normal;
+  text-align: left;
+  vertical-align: top;
 }
 
 .table-wrap thead th {
@@ -555,7 +575,10 @@ h1 {
 @media (min-width: 900px) {
   :root {
     --shell: 1000px;
-    --measure: 70ch;
+    /* rem, not ch: each prose child now sets its own max-width, and ch would
+       resolve against that child's font size, giving an h2 a wider box than a
+       paragraph and knocking the left edges out of alignment. */
+    --measure: 40rem;
   }
 
   .site-nav {
