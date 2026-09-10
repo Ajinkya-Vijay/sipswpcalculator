@@ -1,20 +1,27 @@
 /* Calculator widget styles. Base typography and site chrome live in
-   styles/site.css, which is loaded first. */
+   styles/site.css, which is loaded first.
+
+   The widget is one fluid component rather than a fixed-width phone card: the
+   two panels stack on a narrow screen and sit side by side from the tablet
+   breakpoint up, driven entirely by .calc-grid. */
 
 .card {
   background: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 28px;
-  padding: 22px;
+  border-radius: clamp(20px, 4vw, 28px);
+  padding: clamp(16px, 3.5vw, 28px);
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.09);
   text-align: center;
 }
 
+/* A segmented control reads as a control, not a banner, so it keeps a sensible
+   width no matter how wide the card gets. */
 .view-toggle {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px;
-  margin: 0 0 20px;
+  width: min(100%, 440px);
+  margin: 0 auto 20px;
   padding: 4px;
   background: #eaf2f8;
   border-radius: 16px;
@@ -36,6 +43,29 @@
   background: #ffffff;
   color: #065f46;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+/* ------------------------------------------------------------- layout ---- */
+
+.calc-grid {
+  display: grid;
+  gap: clamp(14px, 2.5vw, 22px);
+  align-items: start;
+}
+
+/* With only the withdrawal panel on screen, hold it at a comfortable width and
+   centre it instead of letting one column of sliders span the whole card. */
+.calc-grid.is-single {
+  grid-template-columns: min(100%, 520px);
+  justify-content: center;
+}
+
+.panel {
+  background: #f8fcff;
+  border: 1px solid rgba(96, 165, 250, 0.18);
+  border-radius: clamp(18px, 3.5vw, 24px);
+  padding: clamp(14px, 3vw, 22px);
+  min-width: 0;
 }
 
 .tab-bar {
@@ -66,28 +96,15 @@
   color: #065f46;
 }
 
-.panel {
-  max-width: 460px;
-  margin: 0 auto;
-  background: #f8fcff;
-  border: 1px solid rgba(96, 165, 250, 0.18);
-  border-radius: 24px;
-  padding: 18px;
-}
-
-.swp-section {
-  margin-top: 8px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
-}
-
 .swp-heading {
   margin: 0 0 16px;
-  font-size: 1.02rem;
+  font-size: clamp(0.98rem, 0.94rem + 0.2vw, 1.12rem);
   font-weight: 700;
   color: #0f172a;
   text-align: left;
 }
+
+/* ------------------------------------------------------------ sliders ---- */
 
 .slider-group {
   margin-bottom: 20px;
@@ -99,24 +116,27 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .slider-title {
   margin: 0;
-  font-size: 0.94rem;
+  font-size: clamp(0.88rem, 0.85rem + 0.15vw, 0.96rem);
   color: #374151;
   text-align: left;
+  flex: 1 1 8rem;
+  min-width: 0;
 }
 
 .slider-value-group {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .slider-number-input {
-  width: 120px;
-  min-width: 100px;
+  width: clamp(96px, 34vw, 140px);
   appearance: none;
   border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 14px;
@@ -203,32 +223,39 @@ input[type='range']::-moz-range-thumb {
   margin-top: 6px;
 }
 
+/* ------------------------------------------------------------ results ---- */
+
 .results-card {
   margin-top: 20px;
   background: #ffffff;
-  border-radius: 24px;
+  border-radius: clamp(18px, 3.5vw, 24px);
   border: 1px solid rgba(15, 23, 42, 0.08);
-  padding: 18px;
+  padding: clamp(14px, 3vw, 20px);
 }
 
 .result-row {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  align-items: center;
+  align-items: baseline;
   margin-bottom: 14px;
+  flex-wrap: wrap;
 }
 
 .result-label {
   margin: 0;
   color: #6b7280;
-  font-size: 0.95rem;
+  font-size: clamp(0.88rem, 0.85rem + 0.15vw, 0.96rem);
+  text-align: left;
 }
 
 .result-value {
   margin: 0;
   font-weight: 700;
   color: #111827;
+  font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.15rem);
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 .result-value.highlight {
@@ -250,9 +277,25 @@ input[type='range']::-moz-range-thumb {
   margin-bottom: 0;
 }
 
+.total-row .result-value {
+  font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.35rem);
+}
+
+/* ------------------------------------------------------- breakpoints ---- */
+
+/* Smallest phones: the label and its number field get a line each rather than
+   being squeezed into one. */
 @media (max-width: 380px) {
-  .card {
-    padding: 18px;
+  .slider-title {
+    flex-basis: 100%;
+  }
+
+  .slider-number-input {
+    width: 100%;
+  }
+
+  .slider-value-group {
+    width: 100%;
   }
 
   .tab-bar {
@@ -262,5 +305,59 @@ input[type='range']::-moz-range-thumb {
   .tab {
     padding: 12px 0;
     font-size: 0.9rem;
+  }
+}
+
+/* Tablet and up: accumulation on the left, withdrawal on the right, both
+   visible at once — the comparison the tool exists to make. */
+@media (min-width: 900px) {
+  .calc-grid.is-split {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .calc-grid.is-split .panel {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Push each panel's result card to its foot so the two line up across the
+     gap even when one side has an extra slider. */
+  .calc-grid.is-split .results-card {
+    margin-top: auto;
+  }
+
+  /* The SWP-only view has no second panel to pair with, so it splits inside
+     itself: inputs on the left, the result card beside them. */
+  .calc-grid.is-single {
+    grid-template-columns: min(100%, 880px);
+  }
+
+  .calc-grid.is-single .panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: clamp(16px, 2.5vw, 28px);
+    align-items: start;
+  }
+
+  .calc-grid.is-single .results-card {
+    margin-top: 0;
+  }
+}
+
+/* Touch screens get a larger grab target than a mouse needs. */
+@media (pointer: coarse) {
+  input[type='range'] {
+    height: 8px;
+  }
+
+  input[type='range']::-webkit-slider-thumb {
+    width: 26px;
+    height: 26px;
+    margin-top: -9px;
+  }
+
+  input[type='range']::-moz-range-thumb {
+    width: 26px;
+    height: 26px;
   }
 }

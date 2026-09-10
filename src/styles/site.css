@@ -1,5 +1,10 @@
 /* Site chrome and long-form content. Loaded on every page; the calculator's own
-   styles live in App.css and load only on calculator pages. */
+   styles live in App.css and load only on calculator pages.
+
+   The layout is fluid rather than a fixed mobile column: every horizontal
+   measurement is a percentage, a clamp() or a min() against a shell width that
+   widens at each breakpoint, so one stylesheet serves a 320px phone and a
+   1440px monitor without a separate desktop build. */
 
 :root {
   --ink: #1f2937;
@@ -12,10 +17,18 @@
   --page: #eef7ff;
   --line: rgba(15, 23, 42, 0.1);
 
+  /* Layout scale, re-declared at the breakpoints at the end of this file.
+     Everything that sets a width refers to these instead of fixed pixels. */
+  --shell: 100%;        /* outer content column */
+  --measure: 100%;      /* readable line length for prose */
+  --gutter: clamp(14px, 4.5vw, 28px);
+  --block-gap: clamp(28px, 5vw, 44px);
+  --radius: clamp(16px, 4vw, 24px);
+
   color: var(--ink);
   background: var(--page);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 16px;
+  font-size: clamp(15.5px, 0.95rem + 0.15vw, 17px);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   text-size-adjust: 100%;
@@ -34,6 +47,11 @@ body {
 body {
   background: var(--page);
   color: var(--ink);
+  /* Nothing may push the document sideways; wide blocks scroll inside
+     themselves instead (see .table-wrap and .formula). `clip` rather than
+     `hidden` on purpose — `hidden` would make the body a scroll container and
+     stop .site-header from sticking. */
+  overflow-x: clip;
 }
 
 button,
@@ -82,14 +100,13 @@ img {
 }
 
 .site-header-inner {
-  width: min(100%, 960px);
+  width: min(100%, var(--shell));
   margin: 0 auto;
-  padding: 10px 16px;
+  padding: 10px var(--gutter);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: clamp(10px, 2vw, 24px);
 }
 
 .brand {
@@ -100,28 +117,46 @@ img {
   color: var(--ink-strong);
   font-weight: 800;
   letter-spacing: -0.01em;
+  flex-shrink: 0;
+  font-size: clamp(0.95rem, 0.9rem + 0.4vw, 1.1rem);
 }
 
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: clamp(28px, 7vw, 34px);
+  height: clamp(28px, 7vw, 34px);
   border-radius: 9px;
   background: linear-gradient(135deg, #22c55e, #2563eb);
   color: #fff;
   font-size: 1rem;
   font-weight: 700;
+  flex-shrink: 0;
 }
 
 .brand-text span {
   color: var(--accent);
 }
 
+/* Below the desktop breakpoint the nav is one swipeable row rather than a block
+   that wraps onto two or three lines and doubles the header height. */
 .site-nav {
   display: flex;
   gap: 4px;
-  flex-wrap: wrap;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  padding-block-end: 2px;
+  margin-inline: calc(var(--gutter) * -0.5);
+  padding-inline: calc(var(--gutter) * 0.5);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+}
+
+.site-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .site-nav a {
@@ -132,6 +167,7 @@ img {
   font-size: 0.9rem;
   font-weight: 600;
   white-space: nowrap;
+  scroll-snap-align: end;
 }
 
 .site-nav a:hover {
@@ -147,9 +183,18 @@ img {
 /* --------------------------------------------------------------- page ---- */
 
 .app-shell {
-  width: min(100%, 760px);
+  width: min(100%, var(--shell));
   margin: 0 auto;
-  padding: 20px 16px 48px;
+  padding: clamp(16px, 4vw, 28px) var(--gutter) clamp(40px, 8vw, 72px);
+}
+
+/* Prose keeps a readable measure even once the shell is wide; the calculator
+   and the link grid are free to use the whole width. */
+.page-intro,
+.seo-content,
+.faq {
+  max-width: var(--measure);
+  margin-inline: auto;
 }
 
 .crumbs ol {
@@ -175,7 +220,7 @@ img {
 
 .page-intro {
   text-align: center;
-  margin-bottom: 22px;
+  margin-bottom: clamp(20px, 4vw, 32px);
 }
 
 .eyebrow {
@@ -189,18 +234,20 @@ img {
 
 h1 {
   margin: 0;
-  font-size: clamp(1.65rem, 4.4vw, 2.3rem);
+  font-size: clamp(1.65rem, 1.2rem + 2.2vw, 2.85rem);
   line-height: 1.15;
   color: var(--ink-strong);
   font-weight: 800;
   letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 .intro-copy {
   margin: 12px auto 0;
-  max-width: 560px;
+  max-width: 62ch;
   color: var(--ink-muted);
-  font-size: 1rem;
+  font-size: clamp(1rem, 0.97rem + 0.2vw, 1.1rem);
+  text-wrap: pretty;
 }
 
 .noscript-note {
@@ -215,17 +262,18 @@ h1 {
 /* ------------------------------------------------------------ content ---- */
 
 .seo-content {
-  margin: 34px auto 0;
+  margin-top: var(--block-gap);
   color: #475569;
 }
 
 .seo-content h2 {
-  margin: 34px 0 12px;
+  margin: var(--block-gap) 0 12px;
   color: var(--ink-strong);
-  font-size: 1.32rem;
+  font-size: clamp(1.28rem, 1.15rem + 0.6vw, 1.65rem);
   line-height: 1.25;
   font-weight: 700;
   letter-spacing: -0.01em;
+  text-wrap: balance;
 }
 
 .seo-content h2:first-child {
@@ -235,6 +283,7 @@ h1 {
 .seo-content p {
   margin: 0 0 14px;
   font-size: 0.97rem;
+  text-wrap: pretty;
 }
 
 .seo-content ul,
@@ -260,7 +309,7 @@ h1 {
   border-radius: 10px;
   padding: 12px 16px;
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: 0.93rem;
+  font-size: clamp(0.82rem, 0.75rem + 0.35vw, 0.95rem);
   color: var(--ink-strong);
   overflow-x: auto;
 }
@@ -280,8 +329,9 @@ h1 {
   overflow-x: auto;
   margin: 0 0 20px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--radius);
   background: var(--surface);
+  -webkit-overflow-scrolling: touch;
 }
 
 .table-wrap table {
@@ -301,7 +351,7 @@ h1 {
 
 .table-wrap th,
 .table-wrap td {
-  padding: 10px 14px;
+  padding: 10px clamp(10px, 2vw, 16px);
   text-align: right;
   border-bottom: 1px solid var(--line);
   white-space: nowrap;
@@ -335,12 +385,12 @@ h1 {
 /* ------------------------------------------------------------ faq ------- */
 
 .faq {
-  margin-top: 40px;
+  margin-top: var(--block-gap);
 }
 
 .faq h2 {
   color: var(--ink-strong);
-  font-size: 1.32rem;
+  font-size: clamp(1.28rem, 1.15rem + 0.6vw, 1.65rem);
   margin: 0 0 14px;
   letter-spacing: -0.01em;
 }
@@ -396,23 +446,25 @@ h1 {
 /* ---------------------------------------------------------- related ----- */
 
 .related {
-  margin-top: 40px;
+  margin-top: var(--block-gap);
 }
 
 .related h2 {
   color: var(--ink-strong);
-  font-size: 1.32rem;
+  font-size: clamp(1.28rem, 1.15rem + 0.6vw, 1.65rem);
   margin: 0 0 14px;
   letter-spacing: -0.01em;
 }
 
+/* auto-fit sets the column count from the space available on its own: one card
+   on a phone, two on a tablet, three or more on a monitor. */
 .related-grid {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: clamp(10px, 1.6vw, 16px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
 }
 
 .related-grid a {
@@ -451,13 +503,13 @@ h1 {
 .site-footer {
   border-top: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.6);
-  margin-top: 40px;
+  margin-top: var(--block-gap);
 }
 
 .footer-inner {
-  width: min(100%, 760px);
+  width: min(100%, var(--shell));
   margin: 0 auto;
-  padding: 26px 16px 34px;
+  padding: clamp(22px, 4vw, 34px) var(--gutter) clamp(30px, 5vw, 42px);
   text-align: center;
 }
 
@@ -465,7 +517,7 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px 18px;
+  gap: 8px clamp(12px, 2.5vw, 24px);
   margin-bottom: 16px;
 }
 
@@ -481,19 +533,64 @@ h1 {
 }
 
 .footer-note {
-  margin: 0 0 8px;
+  margin: 0 auto 8px;
+  max-width: 70ch;
   font-size: 0.8rem;
   color: #94a3b8;
   line-height: 1.55;
 }
 
-@media (max-width: 520px) {
-  .site-header-inner {
-    justify-content: center;
+/* ------------------------------------------------------- breakpoints ---- */
+
+/* Large phone and small tablet: pin the shell so lines stop stretching from
+   edge to edge, but keep prose at the full shell width. */
+@media (min-width: 600px) {
+  :root {
+    --shell: 700px;
+  }
+}
+
+/* Tablet and up: the shell outgrows the prose measure, so the two part ways —
+   prose stays centred and narrow while the calculator and grids spread out. */
+@media (min-width: 900px) {
+  :root {
+    --shell: 1000px;
+    --measure: 70ch;
   }
 
   .site-nav {
-    justify-content: center;
-    width: 100%;
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+
+  .site-nav a {
+    padding: 8px 14px;
+    font-size: 0.92rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --shell: 1160px;
+  }
+}
+
+/* Very wide displays: cap the shell so the page never becomes a billboard. */
+@media (min-width: 1600px) {
+  :root {
+    --shell: 1240px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

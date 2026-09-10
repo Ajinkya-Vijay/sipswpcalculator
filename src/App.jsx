@@ -106,9 +106,11 @@ function App({ initialView = 'investment', initialMode = 'sip' }) {
         </button>
       </div>
 
-      <div className="panel">
+      {/* Two independent panels. They stack on a phone in the same order they
+          always did, and sit side by side once there is room for two columns. */}
+      <div className={`calc-grid ${calculatorView === 'investment' ? 'is-split' : 'is-single'}`}>
         {calculatorView === 'investment' && (
-          <>
+          <div className="panel">
             <div className="tab-bar">
               <button
                 type="button"
@@ -280,193 +282,195 @@ function App({ initialView = 'investment', initialMode = 'sip' }) {
                 <p className="result-value">{formatCurrency(result.total)}</p>
               </div>
             </div>
-          </>
+          </div>
         )}
 
-        <div className="swp-section">
-          <h2 className="swp-heading">
-            {calculatorView === 'swp' ? 'SWP calculator' : 'Systematic Withdrawal Plan (SWP)'}
-          </h2>
+        <div className="panel">
+          <div className="swp-section">
+            <h2 className="swp-heading">
+              {calculatorView === 'swp' ? 'SWP calculator' : 'Systematic Withdrawal Plan (SWP)'}
+            </h2>
 
-          <div className="slider-group">
-            <div className="slider-row">
-              <label className="slider-title" htmlFor="swp-principal-input">Total investment</label>
-              <div className="slider-value-group">
-                <input
-                  id="swp-principal-input"
-                  className="slider-number-input"
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  max={100000000}
-                  step={1000}
-                  value={Math.round(activeSwpPrincipal)}
-                  onChange={(event) => {
-                    const value = Number(event.target.value)
-                    if (!Number.isNaN(value)) {
-                      setSwpPrincipal(value)
-                      setSwpPrincipalEdited(true)
-                    }
-                  }}
-                  onBlur={() => setSwpPrincipal(clamp(Math.round(activeSwpPrincipal), 0, 100000000))}
-                />
+            <div className="slider-group">
+              <div className="slider-row">
+                <label className="slider-title" htmlFor="swp-principal-input">Total investment</label>
+                <div className="slider-value-group">
+                  <input
+                    id="swp-principal-input"
+                    className="slider-number-input"
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={100000000}
+                    step={1000}
+                    value={Math.round(activeSwpPrincipal)}
+                    onChange={(event) => {
+                      const value = Number(event.target.value)
+                      if (!Number.isNaN(value)) {
+                        setSwpPrincipal(value)
+                        setSwpPrincipalEdited(true)
+                      }
+                    }}
+                    onBlur={() => setSwpPrincipal(clamp(Math.round(activeSwpPrincipal), 0, 100000000))}
+                  />
+                </div>
+              </div>
+              {corpusIsCarriedOver ? (
+                <p className="carry-note" role="status">
+                  Carried over automatically from your {mode === 'sip' ? 'SIP' : 'lumpsum'} total value.
+                </p>
+              ) : (
+                calculatorView === 'investment' && (
+                  <p className="carry-note">
+                    Using your own figure.{' '}
+                    <button
+                      type="button"
+                      className="link-button"
+                      onClick={() => setSwpPrincipalEdited(false)}
+                    >
+                      Use the {mode === 'sip' ? 'SIP' : 'lumpsum'} total instead
+                    </button>
+                  </p>
+                )
+              )}
+            </div>
+
+            <div className="slider-group">
+              <div className="slider-row">
+                <label className="slider-title" htmlFor="swp-withdrawal-input">Withdrawal per month</label>
+                <div className="slider-value-group">
+                  <input
+                    id="swp-withdrawal-input"
+                    className="slider-number-input"
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={1000000}
+                    step={1000}
+                    value={swpWithdrawal}
+                    onChange={(event) => setSwpWithdrawal(Number(event.target.value))}
+                    onBlur={() => setSwpWithdrawal(clamp(swpWithdrawal, 0, 1000000))}
+                  />
+                </div>
+              </div>
+              <input
+                id="swp-withdrawal-slider"
+                type="range"
+                aria-label="Withdrawal per month"
+                min="0"
+                max="1000000"
+                step="1000"
+                value={swpWithdrawal}
+                onChange={(event) => setSwpWithdrawal(Number(event.target.value))}
+                style={{ background: sliderBackground(swpWithdrawal, 0, 1000000) }}
+              />
+              <div className="slider-meta-row">
+                <span>₹0</span>
+                <span>₹10L</span>
               </div>
             </div>
-            {corpusIsCarriedOver ? (
-              <p className="carry-note" role="status">
-                Carried over automatically from your {mode === 'sip' ? 'SIP' : 'lumpsum'} total value.
+
+            <div className="slider-group">
+              <div className="slider-row">
+                <label className="slider-title" htmlFor="swp-rate-input">Expected return during SWP (p.a.)</label>
+                <div className="slider-value-group">
+                  <input
+                    id="swp-rate-input"
+                    className="slider-number-input"
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={25}
+                    step={0.5}
+                    value={swpRate}
+                    onChange={(event) => {
+                      const value = Number(event.target.value)
+                      if (!Number.isNaN(value)) setSwpRate(value)
+                    }}
+                    onBlur={() => setSwpRate(clamp(swpRate, 0, 25))}
+                  />
+                </div>
+              </div>
+              <input
+                id="swp-rate-slider"
+                type="range"
+                aria-label="Expected return during the withdrawal period"
+                min="0"
+                max="25"
+                step="0.5"
+                value={swpRate}
+                onChange={(event) => setSwpRate(Number(event.target.value))}
+                style={{ background: sliderBackground(swpRate, 0, 25) }}
+              />
+              <div className="slider-meta-row">
+                <span>0%</span>
+                <span>25%</span>
+              </div>
+            </div>
+
+            <div className="slider-group">
+              <div className="slider-row">
+                <label className="slider-title" htmlFor="swp-years-input">SWP period</label>
+                <div className="slider-value-group">
+                  <input
+                    id="swp-years-input"
+                    className="slider-number-input"
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={30}
+                    step={1}
+                    value={swpYears}
+                    onChange={(event) => {
+                      const value = Number(event.target.value)
+                      if (!Number.isNaN(value)) setSwpYears(value)
+                    }}
+                    onBlur={() => setSwpYears(clamp(swpYears, 1, 30))}
+                  />
+                </div>
+              </div>
+              <input
+                id="swp-years-slider"
+                type="range"
+                aria-label="SWP period in years"
+                min="1"
+                max="30"
+                step="1"
+                value={swpYears}
+                onChange={(event) => setSwpYears(Number(event.target.value))}
+                style={{ background: sliderBackground(swpYears, 1, 30) }}
+              />
+              <div className="slider-meta-row">
+                <span>1 Yr</span>
+                <span>30 Yr</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="results-card swp-results">
+            <div className="result-row">
+              <p className="result-label">Total investment</p>
+              <p className="result-value">{formatCurrency(activeSwpPrincipal)}</p>
+            </div>
+            <div className="result-row">
+              <p className="result-label">Total withdrawal</p>
+              <p className="result-value highlight">{formatCurrency(swpResult.totalWithdrawal)}</p>
+            </div>
+            <div className="divider" />
+            <div className="result-row total-row">
+              <p className="result-label">Final value</p>
+              <p className={`result-value ${swpResult.finalValue < 0 ? 'negative' : ''}`}>
+                {formatCurrency(swpResult.finalValue)}
               </p>
-            ) : (
-              calculatorView === 'investment' && (
-                <p className="carry-note">
-                  Using your own figure.{' '}
-                  <button
-                    type="button"
-                    className="link-button"
-                    onClick={() => setSwpPrincipalEdited(false)}
-                  >
-                    Use the {mode === 'sip' ? 'SIP' : 'lumpsum'} total instead
-                  </button>
-                </p>
-              )
+            </div>
+            {swpResult.finalValue < 0 && (
+              <p className="warn-note" role="status">
+                This corpus runs out before the {swpYears}-year withdrawal period ends. Lower the monthly withdrawal,
+                shorten the period, or build a larger corpus.
+              </p>
             )}
           </div>
-
-          <div className="slider-group">
-            <div className="slider-row">
-              <label className="slider-title" htmlFor="swp-withdrawal-input">Withdrawal per month</label>
-              <div className="slider-value-group">
-                <input
-                  id="swp-withdrawal-input"
-                  className="slider-number-input"
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  max={1000000}
-                  step={1000}
-                  value={swpWithdrawal}
-                  onChange={(event) => setSwpWithdrawal(Number(event.target.value))}
-                  onBlur={() => setSwpWithdrawal(clamp(swpWithdrawal, 0, 1000000))}
-                />
-              </div>
-            </div>
-            <input
-              id="swp-withdrawal-slider"
-              type="range"
-              aria-label="Withdrawal per month"
-              min="0"
-              max="1000000"
-              step="1000"
-              value={swpWithdrawal}
-              onChange={(event) => setSwpWithdrawal(Number(event.target.value))}
-              style={{ background: sliderBackground(swpWithdrawal, 0, 1000000) }}
-            />
-            <div className="slider-meta-row">
-              <span>₹0</span>
-              <span>₹10L</span>
-            </div>
-          </div>
-
-          <div className="slider-group">
-            <div className="slider-row">
-              <label className="slider-title" htmlFor="swp-rate-input">Expected return during SWP (p.a.)</label>
-              <div className="slider-value-group">
-                <input
-                  id="swp-rate-input"
-                  className="slider-number-input"
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  max={25}
-                  step={0.5}
-                  value={swpRate}
-                  onChange={(event) => {
-                    const value = Number(event.target.value)
-                    if (!Number.isNaN(value)) setSwpRate(value)
-                  }}
-                  onBlur={() => setSwpRate(clamp(swpRate, 0, 25))}
-                />
-              </div>
-            </div>
-            <input
-              id="swp-rate-slider"
-              type="range"
-              aria-label="Expected return during the withdrawal period"
-              min="0"
-              max="25"
-              step="0.5"
-              value={swpRate}
-              onChange={(event) => setSwpRate(Number(event.target.value))}
-              style={{ background: sliderBackground(swpRate, 0, 25) }}
-            />
-            <div className="slider-meta-row">
-              <span>0%</span>
-              <span>25%</span>
-            </div>
-          </div>
-
-          <div className="slider-group">
-            <div className="slider-row">
-              <label className="slider-title" htmlFor="swp-years-input">SWP period</label>
-              <div className="slider-value-group">
-                <input
-                  id="swp-years-input"
-                  className="slider-number-input"
-                  type="number"
-                  inputMode="numeric"
-                  min={1}
-                  max={30}
-                  step={1}
-                  value={swpYears}
-                  onChange={(event) => {
-                    const value = Number(event.target.value)
-                    if (!Number.isNaN(value)) setSwpYears(value)
-                  }}
-                  onBlur={() => setSwpYears(clamp(swpYears, 1, 30))}
-                />
-              </div>
-            </div>
-            <input
-              id="swp-years-slider"
-              type="range"
-              aria-label="SWP period in years"
-              min="1"
-              max="30"
-              step="1"
-              value={swpYears}
-              onChange={(event) => setSwpYears(Number(event.target.value))}
-              style={{ background: sliderBackground(swpYears, 1, 30) }}
-            />
-            <div className="slider-meta-row">
-              <span>1 Yr</span>
-              <span>30 Yr</span>
-            </div>
-          </div>
         </div>
-      </div>
-
-      <div className="results-card swp-results">
-        <div className="result-row">
-          <p className="result-label">Total investment</p>
-          <p className="result-value">{formatCurrency(activeSwpPrincipal)}</p>
-        </div>
-        <div className="result-row">
-          <p className="result-label">Total withdrawal</p>
-          <p className="result-value highlight">{formatCurrency(swpResult.totalWithdrawal)}</p>
-        </div>
-        <div className="divider" />
-        <div className="result-row total-row">
-          <p className="result-label">Final value</p>
-          <p className={`result-value ${swpResult.finalValue < 0 ? 'negative' : ''}`}>
-            {formatCurrency(swpResult.finalValue)}
-          </p>
-        </div>
-        {swpResult.finalValue < 0 && (
-          <p className="warn-note" role="status">
-            This corpus runs out before the {swpYears}-year withdrawal period ends. Lower the monthly withdrawal,
-            shorten the period, or build a larger corpus.
-          </p>
-        )}
       </div>
     </section>
   )
