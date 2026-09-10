@@ -1,10 +1,17 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
+import './styles/site.css'
 import App from './App.jsx'
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+const container = document.getElementById('root')
+
+if (container) {
+  // Each generated page declares which calculator it should open on.
+  const { view = 'investment', mode = 'sip' } = container.dataset
+
+  createRoot(container).render(
+    <StrictMode>
+      <App initialView={view} initialMode={mode} />
+    </StrictMode>,
+  )
+}
