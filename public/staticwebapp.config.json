@@ -33,6 +33,12 @@
       }
     },
     {
+      "route": "/ads.txt",
+      "headers": {
+        "Cache-Control": "public, max-age=3600"
+      }
+    },
+    {
       "route": "/*.html",
       "headers": {
         "Cache-Control": "public, max-age=0, must-revalidate"
@@ -46,6 +52,7 @@
     ".json": "application/json",
     ".webmanifest": "application/manifest+json",
     ".svg": "image/svg+xml",
-    ".xml": "application/xml"
+    ".xml": "application/xml",
+    ".txt": "text/plain"
   }
 }

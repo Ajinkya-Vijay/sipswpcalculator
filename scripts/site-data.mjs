@@ -23,8 +23,8 @@ export const NAV = [
   { href: '/sip-vs-swp/', label: 'SIP vs SWP' },
 ]
 
-const table = (caption, headings, rows) => `
-<div class="table-wrap">
+const table = (caption, headings, rows, { prose = false } = {}) => `
+<div class="table-wrap${prose ? ' table-wrap--prose' : ''}">
   <table>
     <caption>${caption}</caption>
     <thead><tr>${headings.map((h) => `<th scope="col">${h}</th>`).join('')}</tr></thead>
@@ -398,6 +398,7 @@ ${table(
     ['What you ask the calculator', 'What will my corpus become?', 'How long will my corpus last?'],
     ['Tax event', 'None on investing', 'Capital gains on the gain portion of each withdrawal'],
   ],
+  { prose: true },
 )}
 
 <h2>Why a falling market flips from friend to enemy</h2>
@@ -532,7 +533,7 @@ export const PAGES = [
       'Free SIP and SWP calculator in one window. Your SIP or lumpsum total flows straight into the SWP calculator — no copying the corpus between two tools.',
     h1: 'SIP &amp; SWP Calculator, Together in One Window',
     intro:
-      'Calculate your SIP or lumpsum returns, then plan your monthly withdrawals — without copying the total between two calculators. The corpus carries over automatically.',
+      'Your SIP or lumpsum total flows straight into the SWP calculator — no copying between two tools.',
     eyebrow: 'Free mutual fund planning tool',
     body: homeBody,
     faq: homeFaq,
@@ -548,7 +549,7 @@ export const PAGES = [
       'Free SIP calculator for mutual fund returns. Enter your monthly amount, expected return and years to see invested amount, returns and total value.',
     h1: 'SIP Calculator',
     intro:
-      'Estimate what a monthly mutual fund investment could grow into. Set the amount, the expected annual return and the number of years, and watch the invested amount, estimated returns and total value update as you type.',
+      'Set your monthly amount, expected return and time period to see invested amount, returns and total value.',
     eyebrow: 'Systematic Investment Plan',
     body: sipBody,
     faq: sipFaq,
@@ -564,7 +565,7 @@ export const PAGES = [
       'Free SWP calculator. Enter your corpus, monthly withdrawal and expected return to see total withdrawals, final value and how long your money lasts.',
     h1: 'SWP Calculator',
     intro:
-      'Work out how long a corpus lasts under a fixed monthly withdrawal. Enter your total investment, the monthly withdrawal you need and an expected return to see total withdrawals and the projected final value.',
+      'Enter your corpus, monthly withdrawal and expected return to see how long the money lasts.',
     eyebrow: 'Systematic Withdrawal Plan',
     body: swpBody,
     faq: swpFaq,
@@ -580,7 +581,7 @@ export const PAGES = [
       'Free lumpsum calculator for a one-time mutual fund investment. See invested amount, estimated returns and total value at your expected annual return.',
     h1: 'Lumpsum Calculator',
     intro:
-      'Estimate the future value of a single one-time investment. Enter the amount, the expected annual return and the holding period to see how it compounds.',
+      'See what a single one-time investment compounds to over your chosen holding period.',
     eyebrow: 'One-time investment',
     body: lumpsumBody,
     faq: lumpsumFaq,
@@ -596,7 +597,7 @@ export const PAGES = [
       'SIP invests a fixed amount monthly, SWP withdraws one. How they differ, why market falls help a SIP but hurt an SWP, and the number that links them.',
     h1: 'SIP vs SWP: What Is the Difference?',
     intro:
-      'One letter apart, opposite in every practical sense. Here is how a Systematic Investment Plan and a Systematic Withdrawal Plan actually differ, and why the connection between them is a single number.',
+      'One letter apart, opposite in every practical sense — and linked by a single number.',
     eyebrow: 'Guide',
     body: sipVsSwpBody,
     faq: sipVsSwpFaq,
@@ -613,7 +614,7 @@ export const PAGES = [
       'How much monthly income can ₹1 crore generate via SWP, and how long does it last at ₹60,000, ₹80,000 or ₹1 lakh a month? Tables at 7–12% returns.',
     h1: 'How Much Monthly Income Can &#8377;1 Crore Generate?',
     intro:
-      'The withdrawal a ₹1 crore corpus sustains, how long it lasts at common monthly targets, and why the rows that say “never runs out” are more fragile than they look.',
+      'What a ₹1 crore corpus sustains, and how long it lasts at common monthly withdrawal targets.',
     eyebrow: 'Guide',
     body: croreBody,
     faq: croreFaq,

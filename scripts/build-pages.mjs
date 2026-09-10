@@ -331,6 +331,22 @@ Allow: /
 Sitemap: ${SITE.origin}/sitemap.xml
 `
 
+/**
+ * Authorised Digital Sellers. Declares that Google is allowed to sell this
+ * domain's inventory, which is what stops "unauthorised inventory" warnings
+ * and lets buyers verify the seller is legitimate.
+ *
+ * Field order is fixed by the IAB spec:
+ *   <ad system domain>, <publisher id>, <DIRECT|RESELLER>, <certification id>
+ *
+ * f08c47fec0942fa0 is Google's own TAG certification id and is the same for
+ * every AdSense publisher — it identifies Google, not this account.
+ */
+const adsTxt = () => `# Authorised Digital Sellers for ${new URL(SITE.origin).hostname}
+# Spec: https://iabtechlab.com/ads-txt/
+google.com, ${ADSENSE_CLIENT.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0
+`
+
 const manifest = () =>
   JSON.stringify(
     {
@@ -369,9 +385,10 @@ const run = async () => {
 
   await write('public/sitemap.xml', sitemap())
   await write('public/robots.txt', robots())
+  await write('public/ads.txt', adsTxt())
   await write('public/site.webmanifest', manifest())
 
-  console.log(`Generated ${PAGES.length + 1} pages, sitemap, robots.txt and web manifest.`)
+  console.log(`Generated ${PAGES.length + 1} pages, sitemap, robots.txt, ads.txt and web manifest.`)
 }
 
 run().catch((error) => {
