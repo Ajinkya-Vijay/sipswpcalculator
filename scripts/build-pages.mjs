@@ -6,7 +6,7 @@
  *
  * Run by `npm run build` and `npm run dev`; the files it writes are gitignored.
  */
-import { mkdir, writeFile, rm } from 'node:fs/promises'
+import { mkdir, writeFile, rm, readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { PAGES, NOT_FOUND, NAV, SITE } from './site-data.mjs'
@@ -373,7 +373,25 @@ const write = async (relativePath, contents) => {
   await writeFile(target, contents, 'utf8')
 }
 
+// Azure applies trailingSlash to every path, asset files included. Setting it
+// to "always" 301s /assets/x.js to /assets/x.js/, after which the bundle's
+// relative imports resolve against that as a directory and 404. There is no
+// per-path exclusion, so the setting simply must not be "always".
+const checkHostingConfig = async () => {
+  const configPath = join(ROOT, 'public/staticwebapp.config.json')
+  const config = JSON.parse(await readFile(configPath, 'utf8'))
+  if (config.trailingSlash === 'always') {
+    throw new Error(
+      'staticwebapp.config.json sets trailingSlash:"always", which redirects /assets/*.js ' +
+        'and breaks module imports in production. Remove it; canonical tags already make the ' +
+        'trailing-slash page URLs authoritative.',
+    )
+  }
+}
+
 const run = async () => {
+  await checkHostingConfig()
+
   // Clear generated route directories so a renamed page cannot linger.
   for (const entry of PAGES) {
     if (entry.file.includes('/')) await rm(join(ROOT, dirname(entry.file)), { recursive: true, force: true })
