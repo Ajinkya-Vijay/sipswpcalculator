@@ -65,7 +65,7 @@ const softwareApplication = (page) => ({
   name: plain(page.h1),
   url: abs(page.path),
   applicationCategory: 'FinanceApplication',
-  applicationSubCategory: 'Investment Calculator',
+  applicationSubCategory: page.app.subCategory ?? 'Investment Calculator',
   operatingSystem: 'Any modern web browser',
   browserRequirements: 'Requires JavaScript',
   description: page.description,
@@ -73,7 +73,7 @@ const softwareApplication = (page) => ({
   isAccessibleForFree: true,
   provider: { '@id': `${SITE.origin}/#organization` },
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' },
-  featureList: [
+  featureList: page.app.features ?? [
     'SIP return calculator',
     'Lumpsum investment calculator',
     'Systematic Withdrawal Plan calculator',
@@ -147,7 +147,7 @@ const buildSchema = (page) => {
 
 const nav = (page) =>
   NAV.map((item) => {
-    const current = item.href === page.path
+    const current = item.href === page.path || item.match?.includes(page.path)
     return `<a href="${item.href}"${current ? ' aria-current="page"' : ''}>${item.label}</a>`
   }).join('')
 
@@ -192,7 +192,9 @@ const related = (page) => {
 
 const appMarkup = (page) =>
   page.app
-    ? `<div id="root" data-view="${page.app.view}" data-mode="${page.app.mode}">
+    ? `<div id="root" data-view="${page.app.view}" data-mode="${page.app.mode}"${
+        page.app.loan ? ` data-loan="${page.app.loan}"` : ''
+      }>
       <noscript>
         <p class="noscript-note">This calculator needs JavaScript to run. The formulas, worked examples and
         reference tables below work without it.</p>
@@ -282,6 +284,9 @@ ${data.noindex ? '' : `    <link rel="canonical" href="${canonical}" />
           <a href="/lumpsum-calculator/">Lumpsum Calculator</a>
           <a href="/sip-vs-swp/">SIP vs SWP</a>
           <a href="/swp-from-1-crore/">Income From ₹1 Crore</a>
+          <a href="/home-loan-emi-calculator/">Home Loan EMI</a>
+          <a href="/car-loan-emi-calculator/">Car Loan EMI</a>
+          <a href="/personal-loan-emi-calculator/">Personal Loan EMI</a>
           <a href="/about/">About</a>
           <a href="/privacy/">Privacy</a>
         </nav>

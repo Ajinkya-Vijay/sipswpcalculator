@@ -55,3 +55,69 @@ export const durationLabel = (months) => {
   if (m === 0) return `${y} year${y === 1 ? '' : 's'}`
   return `${y} yr ${m} mo`
 }
+
+// Standard reducing-balance EMI: P × i × (1 + i)^n ÷ ((1 + i)^n − 1).
+export const loanEmi = (principal, ratePct, months) => {
+  const r = ratePct / 12 / 100
+  if (months <= 0) return 0
+  if (r === 0) return principal / months
+  const factor = Math.pow(1 + r, months)
+  return (principal * r * factor) / (factor - 1)
+}
+
+/**
+ * Month-by-month repayment of a loan, rolled up into loan years. Prepayments
+ * go straight to principal and keep the EMI unchanged, so they shorten the
+ * tenure — the default most Indian lenders apply.
+ *
+ * prepayment: { type: 'none' | 'once' | 'yearly', amount, year }
+ *   once   — a single payment at the end of loan year `year`
+ *   yearly — the same payment at the end of every loan year
+ */
+export const loanSchedule = (principal, ratePct, months, prepayment = { type: 'none' }) => {
+  const r = ratePct / 12 / 100
+  const emi = loanEmi(principal, ratePct, months)
+  const prepayAmount = prepayment.type === 'none' ? 0 : Math.max(0, prepayment.amount || 0)
+
+  const years = []
+  let balance = principal
+  let month = 0
+  let totalInterest = 0
+  let totalPrepaid = 0
+
+  while (balance > 0.005 && month < months) {
+    month += 1
+    const interest = balance * r
+    const principalPart = Math.min(emi - interest, balance)
+    balance -= principalPart
+    totalInterest += interest
+
+    const yearIndex = Math.ceil(month / 12) - 1
+    if (!years[yearIndex]) years[yearIndex] = { year: yearIndex + 1, principal: 0, interest: 0, prepayment: 0, balance: 0, months: 0 }
+    const row = years[yearIndex]
+    row.principal += principalPart
+    row.interest += interest
+    row.months += 1
+
+    const yearEnd = month % 12 === 0
+    const prepayDue = prepayAmount > 0 && yearEnd && balance > 0.005 && (
+      prepayment.type === 'yearly' || (prepayment.type === 'once' && month / 12 === prepayment.year)
+    )
+    if (prepayDue) {
+      const paid = Math.min(prepayAmount, balance)
+      balance -= paid
+      row.prepayment += paid
+      totalPrepaid += paid
+    }
+    row.balance = Math.max(balance, 0)
+  }
+
+  return {
+    emi,
+    months: month,
+    totalInterest,
+    totalPrepaid,
+    totalPaid: principal + totalInterest,
+    years,
+  }
+}

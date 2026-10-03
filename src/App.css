@@ -364,3 +364,343 @@ input[type='range']::-moz-range-thumb {
     height: 26px;
   }
 }
+
+/* ---------------------------------------------------------- loan EMI ---- */
+
+/* Chart identity colours. Validated as a pair for colour-vision deficiency
+   and for 3:1 contrast against the white card. */
+.loan-card {
+  --principal: #2563eb;
+  --interest: #ea580c;
+}
+
+/* The loan-type switcher links to each loan's own page, so it is anchors
+   styled as the segmented control rather than buttons. */
+.view-toggle--three {
+  grid-template-columns: repeat(3, 1fr);
+  width: min(100%, 520px);
+}
+
+a.view-toggle-option {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+
+a.view-toggle-option:hover:not(.active) {
+  color: #2563eb;
+}
+
+.unit-toggle {
+  display: inline-flex;
+  margin-left: 10px;
+  padding: 2px;
+  background: #eaf2f8;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.unit-toggle button {
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.unit-toggle button.active {
+  background: #ffffff;
+  color: #065f46;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+.prepay {
+  margin: 4px 0 0;
+  padding: 14px 0 0;
+  border: 0;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  min-width: 0;
+}
+
+.prepay legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 0;
+  font-weight: 600;
+}
+
+.tab-bar--three {
+  clear: both;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.tab-bar--three .tab {
+  padding: 11px 0;
+  font-size: 0.88rem;
+}
+
+.prepay .carry-note {
+  margin-top: 0;
+}
+
+/* The shared split layout pins result cards to the panel's foot; here the EMI
+   is the first thing to read, so the results stack from the top. */
+.loan-card .calc-grid.is-split .results-card {
+  margin-top: 16px;
+}
+
+/* The answer people came for, set larger than every other figure. */
+.loan-card .calc-grid .emi-hero {
+  margin-top: 0;
+  text-align: left;
+  background: #f0fdf4;
+  border-color: rgba(22, 163, 74, 0.18);
+}
+
+.emi-value {
+  margin: 4px 0 0;
+  font-size: clamp(1.7rem, 1.4rem + 1.4vw, 2.3rem);
+  font-weight: 800;
+  color: #065f46;
+  letter-spacing: -0.01em;
+}
+
+/* Principal vs interest as one bar: a two-part whole reads faster as lengths
+   than as a donut's angles. */
+.share-bar {
+  display: flex;
+  gap: 2px;
+  height: 12px;
+  margin: 16px 0 8px;
+}
+
+.share-bar .seg {
+  flex-basis: 0;
+  min-width: 2px;
+}
+
+.share-bar .seg:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.share-bar .seg:last-child {
+  border-radius: 0 4px 4px 0;
+}
+
+.share-legend,
+.loan-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.share-legend span,
+.loan-legend span,
+.loan-tooltip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.seg-principal,
+.swatch-principal {
+  background: var(--principal);
+}
+
+.seg-interest,
+.swatch-interest {
+  background: var(--interest);
+}
+
+.prepay-result {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.prepay-result .result-row:last-of-type {
+  margin-bottom: 6px;
+}
+
+/* -------------------------------------------------------- loan chart ---- */
+
+.loan-chart {
+  margin: clamp(16px, 3vw, 24px) 0 0;
+  padding: clamp(14px, 2.6vw, 20px);
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: clamp(18px, 3.5vw, 24px);
+  text-align: left;
+}
+
+.loan-chart-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
+  margin-bottom: 14px;
+}
+
+.loan-chart-title {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.95rem;
+}
+
+/* Left gutter holds the y-axis labels; bars and gridlines share the rest. */
+.loan-chart-plot {
+  position: relative;
+  height: clamp(180px, 34vw, 260px);
+  padding-left: 48px;
+  padding-bottom: 22px;
+}
+
+.loan-chart-grid {
+  position: absolute;
+  inset: 0 0 22px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.loan-chart-gridline {
+  position: relative;
+  border-top: 1px solid #e2e8f0;
+  height: 0;
+}
+
+.loan-chart-gridline span {
+  position: absolute;
+  right: calc(100% + 8px);
+  top: -0.6em;
+  font-size: 0.72rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.loan-chart-bars {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  height: 100%;
+}
+
+.loan-chart-col {
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  min-width: 0;
+  cursor: default;
+}
+
+/* The column is the hover target, wider than the bar it holds. */
+.loan-chart-col.is-active {
+  background: rgba(37, 99, 235, 0.06);
+  border-radius: 4px 4px 0 0;
+}
+
+.loan-chart-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: min(100%, 24px);
+  min-height: 2px;
+}
+
+.loan-chart-stack .seg {
+  flex-basis: 0;
+  min-height: 0;
+}
+
+.loan-chart-stack .seg:first-child {
+  border-radius: 4px 4px 0 0;
+}
+
+.loan-chart-x {
+  position: absolute;
+  top: calc(100% + 4px);
+  font-size: 0.72rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.loan-chart-xlabel {
+  margin: 4px 0 0 48px;
+  font-size: 0.75rem;
+  color: #64748b;
+  text-align: center;
+}
+
+.loan-tooltip {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  background: #0f172a;
+  color: #f8fafc;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2);
+}
+
+.loan-tooltip[data-edge='start'] {
+  transform: translateX(-12px);
+}
+
+.loan-tooltip[data-edge='end'] {
+  transform: translateX(calc(-100% + 12px));
+}
+
+.loan-tooltip .loan-tooltip-muted {
+  color: #cbd5e1;
+}
+
+/* ----------------------------------------------------- loan schedule ---- */
+
+.schedule {
+  margin-top: 16px;
+  text-align: left;
+}
+
+.schedule summary {
+  cursor: pointer;
+  padding: 12px 4px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.schedule .table-wrap {
+  margin: 4px 0 0;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.schedule thead th {
+  position: sticky;
+  top: 0;
+}

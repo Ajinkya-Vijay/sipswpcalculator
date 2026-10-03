@@ -6,6 +6,8 @@ import {
   rupees,
   rupeesShort,
   durationLabel,
+  loanEmi,
+  loanSchedule,
 } from './finance.mjs'
 
 export const SITE = {
@@ -21,6 +23,11 @@ export const NAV = [
   { href: '/swp-calculator/', label: 'SWP' },
   { href: '/lumpsum-calculator/', label: 'Lumpsum' },
   { href: '/sip-vs-swp/', label: 'SIP vs SWP' },
+  {
+    href: '/home-loan-emi-calculator/',
+    label: 'Loan EMI',
+    match: ['/car-loan-emi-calculator/', '/personal-loan-emi-calculator/'],
+  },
 ]
 
 const table = (caption, headings, rows, { prose = false } = {}) => `
@@ -521,6 +528,287 @@ const croreFaq = [
   ],
 ]
 
+/* ---------------------------------------------------------- loan pages ---- */
+
+const emiFormula = `
+<p class="formula">EMI = P &times; i &times; (1 + i)<sup>n</sup> &divide; [ (1 + i)<sup>n</sup> &minus; 1 ]</p>
+<p>where <strong>P</strong> is the loan amount, <strong>i</strong> is the annual interest rate divided by 12 and by
+100, and <strong>n</strong> is the tenure in months. Interest each month is charged only on the balance still
+outstanding, which is why it is called a reducing-balance loan.</p>`
+
+const loanDisclaimer = `
+<p class="disclaimer"><strong>Disclaimer:</strong> These figures assume a fixed interest rate for the whole tenure and
+monthly reducing-balance EMIs. Floating-rate loans reset with the lender&rsquo;s benchmark, and processing fees,
+insurance, GST and prepayment charges are not included. Your sanction letter is the final word on your EMI.</p>`
+
+const emiRow = (amount, rate, years) => {
+  const s = loanSchedule(amount, rate, years * 12)
+  return [rupeesShort(amount), rupees(s.emi), rupeesShort(s.totalInterest), rupeesShort(s.totalPaid)]
+}
+
+const usingCalculatorSteps = (unitHint) => `
+<ol class="steps">
+  <li><strong>Enter the loan amount</strong> you plan to borrow, not the price of the ${unitHint} &mdash; subtract
+      your down payment first.</li>
+  <li><strong>Set the interest rate</strong> from your lender&rsquo;s offer letter.</li>
+  <li><strong>Choose the tenure</strong> in years or switch to months for an exact figure such as 18 or 42 months.</li>
+  <li><strong>Optionally add a prepayment</strong>, once or every year, to see how much interest it saves and how much
+      sooner the loan closes.</li>
+</ol>`
+
+/* home loan */
+
+const homeLoanAmountRows = [2500000, 5000000, 7500000, 10000000].map((amount) => emiRow(amount, 8.5, 20))
+
+const homeLoanTenureRows = [10, 15, 20, 25, 30].map((years) => {
+  const cells = [7.5, 8.5, 9.5].map((rate) => rupees(loanEmi(5000000, rate, years * 12)))
+  const interest = loanSchedule(5000000, 8.5, years * 12).totalInterest
+  return [`${years} years`, ...cells, rupeesShort(interest)]
+})
+
+const homeBase = loanSchedule(5000000, 8.5, 240)
+const homeYearly = loanSchedule(5000000, 8.5, 240, { type: 'yearly', amount: 100000 })
+const homeOnce = loanSchedule(5000000, 8.5, 240, { type: 'once', amount: 500000, year: 3 })
+
+const homeLoanBody = `
+<h2>How much will your home loan EMI be?</h2>
+<p>A home loan EMI is the fixed amount you pay every month until the loan is cleared. Each EMI is split between
+interest on the balance still outstanding and repayment of principal. In the early years most of the EMI is interest;
+by the last few years it is almost all principal. The chart above shows that shift year by year for your own loan.</p>
+<p>At an 8.5% rate, a ${rupeesShort(5000000)} loan over 20 years costs <strong>${rupees(homeBase.emi)} a
+month</strong>. Over the full term you repay <strong>${rupeesShort(homeBase.totalPaid)}</strong>, of which
+${rupeesShort(homeBase.totalInterest)} is interest &mdash; more than the amount you borrowed.</p>
+
+<h2>Using the home loan EMI calculator</h2>
+${usingCalculatorSteps('property')}
+
+<h2>The EMI formula</h2>
+${emiFormula}
+
+<h2>Home loan EMI by loan amount</h2>
+${table(
+  `At 8.5% a year for 20 years.`,
+  ['Loan amount', 'Monthly EMI', 'Total interest', 'Total payable'],
+  homeLoanAmountRows,
+)}
+
+<h2>How tenure and interest rate change the EMI</h2>
+<p>A longer tenure lowers the EMI but raises the total interest sharply. Stretching a ${rupeesShort(5000000)} loan
+from 20 to 30 years cuts the EMI by about ${rupees(loanEmi(5000000, 8.5, 240) - loanEmi(5000000, 8.5, 360))} a month,
+yet adds roughly ${rupeesShort(
+  loanSchedule(5000000, 8.5, 360).totalInterest - homeBase.totalInterest,
+)} in interest.</p>
+${table(
+  `EMI on a ${rupeesShort(5000000)} loan. Total interest column at 8.5%.`,
+  ['Tenure', 'EMI at 7.5%', 'EMI at 8.5%', 'EMI at 9.5%', 'Interest at 8.5%'],
+  homeLoanTenureRows,
+)}
+
+<h2>What prepaying a home loan saves</h2>
+<p>Any amount you pay over and above the EMI goes straight to principal. Because interest is charged on the
+outstanding balance, every rupee prepaid early stops earning interest for the lender for the rest of the loan.</p>
+<ul>
+  <li><strong>${rupees(100000)} every year</strong> on the ${rupeesShort(5000000)}, 8.5%, 20-year loan saves
+      <strong>${rupeesShort(homeBase.totalInterest - homeYearly.totalInterest)}</strong> of interest and closes the loan
+      in ${durationLabel(homeYearly.months)} instead of 20 years.</li>
+  <li><strong>A single ${rupeesShort(500000)}</strong> at the end of year 3 saves
+      <strong>${rupeesShort(homeBase.totalInterest - homeOnce.totalInterest)}</strong> and closes the loan in
+      ${durationLabel(homeOnce.months)}.</li>
+</ul>
+<p>Under RBI rules, banks and housing finance companies cannot charge a prepayment or foreclosure penalty on
+floating-rate home loans taken by individuals. Fixed-rate loans may carry a charge, so check your agreement.</p>
+
+<h2>Prepay the loan or invest the money?</h2>
+<p>Prepaying earns you a guaranteed return equal to your loan rate. Investing the same amount through a
+<a href="/sip-calculator/">SIP</a> may earn more over long periods but carries market risk. A common middle path is
+to prepay while the loan is young &mdash; when most of each EMI is interest &mdash; and invest once the balance is
+small.</p>
+${loanDisclaimer}`
+
+const homeLoanFaq = [
+  [
+    'How is home loan EMI calculated?',
+    'EMI = P × i × (1 + i)^n ÷ ((1 + i)^n − 1), where P is the loan amount, i is the monthly interest rate (annual rate ÷ 12 ÷ 100) and n is the number of monthly instalments. The calculator applies this formula and then builds the full month-by-month schedule.',
+  ],
+  [
+    `What is the EMI for a ₹50 lakh home loan?`,
+    `At 8.5% for 20 years the EMI is ${rupees(homeBase.emi)}. At 9.5% it rises to ${rupees(
+      loanEmi(5000000, 9.5, 240),
+    )}, and over 30 years at 8.5% it falls to ${rupees(loanEmi(5000000, 8.5, 360))}.`,
+  ],
+  [
+    'Should I choose a longer or shorter home loan tenure?',
+    'A longer tenure gives a smaller EMI but you pay much more interest overall. A shorter tenure costs more each month but saves a large amount of interest. Many borrowers take a longer tenure for EMI comfort and then prepay whenever they have surplus cash, which keeps flexibility while still cutting interest.',
+  ],
+  [
+    'Does prepayment reduce my EMI or my tenure?',
+    'Most lenders keep the EMI unchanged and shorten the tenure by default, which saves the most interest. This calculator models that approach. You can usually ask your lender to reduce the EMI instead and keep the tenure the same.',
+  ],
+  [
+    'Is there a penalty for prepaying a home loan?',
+    'RBI rules prevent banks and housing finance companies from charging prepayment or foreclosure penalties on floating-rate home loans taken by individuals. Fixed-rate loans may still carry a charge, so check your loan agreement.',
+  ],
+  [
+    'Are home loan EMIs eligible for tax deductions?',
+    'Under the old tax regime, interest on a self-occupied home loan is deductible up to ₹2 lakh a year under Section 24(b), and principal repayment counts towards the ₹1.5 lakh limit of Section 80C. The new tax regime does not allow these deductions for a self-occupied house. Confirm the rules for your situation with a tax adviser.',
+  ],
+]
+
+/* car loan */
+
+const carLoanRows = [500000, 800000, 1200000, 2000000].map((amount) => {
+  const cells = [3, 5, 7].map((years) => rupees(loanEmi(amount, 9, years * 12)))
+  return [rupeesShort(amount), ...cells]
+})
+
+const carBase = loanSchedule(800000, 9, 60)
+const carSeven = loanSchedule(800000, 9, 84)
+
+const carLoanBody = `
+<h2>Work out your car loan EMI before you visit the showroom</h2>
+<p>Dealers often quote a car as &ldquo;just ${rupees(
+  Math.round(carSeven.emi / 100) * 100,
+)} a month&rdquo; by stretching the loan to seven years. Knowing the EMI, the total interest and the total cost
+before you negotiate lets you compare the dealer&rsquo;s finance offer with a bank&rsquo;s on equal terms.</p>
+<p>An ${rupeesShort(800000)} car loan at 9% for 5 years costs <strong>${rupees(carBase.emi)} a month</strong> and
+<strong>${rupeesShort(carBase.totalInterest)}</strong> in interest. Stretch it to 7 years and the EMI drops to
+${rupees(carSeven.emi)}, but interest climbs to ${rupeesShort(carSeven.totalInterest)}.</p>
+
+<h2>Using the car loan EMI calculator</h2>
+${usingCalculatorSteps('car')}
+
+<h2>The EMI formula</h2>
+${emiFormula}
+
+<h2>Car loan EMI table</h2>
+${table(
+  'Monthly EMI at 9% a year.',
+  ['Loan amount', '3 years', '5 years', '7 years'],
+  carLoanRows,
+)}
+
+<h2>Keep the tenure shorter than the car&rsquo;s useful life</h2>
+<p>A car loses value every year, so a long loan can leave you owing more than the car is worth. A common rule of
+thumb is to put down at least 20%, keep the tenure to around four or five years, and keep total vehicle costs within
+about a tenth of your monthly income. The year-by-year schedule above shows how quickly your balance falls &mdash;
+compare it with what the car might resell for.</p>
+
+<h2>Prepaying a car loan</h2>
+<p>Car loans are usually fixed-rate, and many lenders charge a foreclosure or part-payment fee on them, commonly a few
+percent of the amount prepaid. Use the prepayment option above to see the interest you would save, then subtract the
+lender&rsquo;s fee to judge whether prepaying is worth it.</p>
+${loanDisclaimer}`
+
+const carLoanFaq = [
+  [
+    'How is car loan EMI calculated?',
+    'Car loans in India are usually reducing-balance loans, so the EMI uses the standard formula EMI = P × i × (1 + i)^n ÷ ((1 + i)^n − 1), with i as the monthly rate and n the number of months. Be careful with flat-rate quotes: a flat rate charges interest on the original amount for the whole tenure and costs far more than the same reducing-balance rate.',
+  ],
+  [
+    'What is the EMI for an ₹8 lakh car loan?',
+    `At 9% it is ${rupees(loanEmi(800000, 9, 36))} over 3 years, ${rupees(carBase.emi)} over 5 years and ${rupees(
+      carSeven.emi,
+    )} over 7 years.`,
+  ],
+  [
+    'What is the maximum tenure for a car loan?',
+    'Most lenders offer new car loans for up to seven or eight years, and shorter tenures for used cars. The calculator lets you choose up to eight years, or any number of months within that.',
+  ],
+  [
+    'Is car loan interest tax deductible?',
+    'Not for a car bought for personal use by a salaried individual. Business owners and professionals using the car for business may be able to claim interest and depreciation as expenses. Check with a tax adviser.',
+  ],
+  [
+    'Can I prepay my car loan?',
+    'Yes, but car loans are often fixed-rate and many lenders charge a fee for part-payment or foreclosure. Check your agreement for the charge and any lock-in period before prepaying.',
+  ],
+]
+
+/* personal loan */
+
+const personalLoanRows = [200000, 500000, 1000000].flatMap((amount) =>
+  [11, 14, 18].map((rate) => {
+    const s = loanSchedule(amount, rate, 36)
+    return [rupeesShort(amount), `${rate}%`, rupees(s.emi), rupeesShort(s.totalInterest)]
+  }),
+)
+
+const personalBase = loanSchedule(500000, 12.5, 36)
+const personalTenureRows = [12, 24, 36, 48, 60].map((months) => {
+  const s = loanSchedule(500000, 12.5, months)
+  return [`${months} months`, rupees(s.emi), rupeesShort(s.totalInterest), rupeesShort(s.totalPaid)]
+})
+
+const personalLoanBody = `
+<h2>What a personal loan really costs</h2>
+<p>Personal loans are unsecured, so their rates are higher than home or car loans and vary widely with your credit
+score and income. A two- or three-point difference in rate changes the EMI noticeably, which is why it pays to compare
+offers on the EMI and the total interest rather than the headline rate alone.</p>
+<p>A ${rupeesShort(500000)} personal loan at 12.5% for 3 years costs <strong>${rupees(personalBase.emi)} a
+month</strong> and <strong>${rupeesShort(personalBase.totalInterest)}</strong> in interest.</p>
+
+<h2>Using the personal loan EMI calculator</h2>
+${usingCalculatorSteps('purchase')}
+
+<h2>The EMI formula</h2>
+${emiFormula}
+
+<h2>Personal loan EMI by amount and rate</h2>
+${table(
+  'Over a 36-month tenure.',
+  ['Loan amount', 'Interest rate', 'Monthly EMI', 'Total interest'],
+  personalLoanRows,
+)}
+
+<h2>Choosing a tenure</h2>
+<p>Personal loans are usually offered for 12 to 60 months, sometimes up to 84. Switch the tenure to months in the
+calculator to test exact options. Pick the shortest tenure whose EMI you can carry comfortably &mdash; lenders
+generally prefer your total EMIs to stay below about half of your take-home pay.</p>
+${table(
+  `A ${rupeesShort(500000)} loan at 12.5%.`,
+  ['Tenure', 'Monthly EMI', 'Total interest', 'Total payable'],
+  personalTenureRows,
+)}
+
+<h2>Fees that are not in the EMI</h2>
+<p>Lenders typically charge a processing fee of up to a few percent of the loan, plus GST, often deducted from the
+amount you receive. Most personal loans are fixed-rate and may carry a foreclosure fee and a lock-in period before
+you can prepay. Add these to the total interest shown above when comparing offers.</p>
+${loanDisclaimer}`
+
+const personalLoanFaq = [
+  [
+    'How is personal loan EMI calculated?',
+    'EMI = P × i × (1 + i)^n ÷ ((1 + i)^n − 1), where P is the loan amount, i is the monthly interest rate and n is the tenure in months. Interest is charged on the reducing balance, so each EMI pays a little less interest and a little more principal than the one before.',
+  ],
+  [
+    'What is the EMI on a ₹5 lakh personal loan?',
+    `At 12.5% it is ${rupees(loanEmi(500000, 12.5, 24))} over 24 months, ${rupees(personalBase.emi)} over 36 months and ${rupees(
+      loanEmi(500000, 12.5, 60),
+    )} over 60 months.`,
+  ],
+  [
+    'Can I enter the tenure in months?',
+    'Yes. Use the Months option next to Loan tenure to enter any tenure from 6 months up to the maximum for the loan type, for example 18 or 42 months.',
+  ],
+  [
+    'Is it worth prepaying a personal loan?',
+    'Usually yes, because personal loan rates are high. Check for a lock-in period and foreclosure fee first. Use the prepayment option to see the interest saved, and prepay if the saving clearly exceeds the fee.',
+  ],
+  [
+    'Does a personal loan EMI include the processing fee?',
+    'No. The processing fee and GST are usually deducted upfront from the loan amount you receive, so they are not part of the EMI. Add them to the total interest when comparing lenders.',
+  ],
+]
+
+const loanFeatures = [
+  'Monthly EMI, total interest and total amount payable',
+  'Loan tenure in years or months',
+  'One-time or yearly prepayment with interest saved and tenure reduced',
+  'Year-by-year principal and interest chart',
+  'Year-by-year repayment schedule',
+]
+
 /* ---------------------------------------------------------------- pages ---- */
 
 export const PAGES = [
@@ -589,6 +877,54 @@ export const PAGES = [
     priority: '0.8',
   },
   {
+    path: '/home-loan-emi-calculator/',
+    file: 'home-loan-emi-calculator/index.html',
+    app: { view: 'loan', mode: 'sip', loan: 'home', subCategory: 'Loan Calculator', features: loanFeatures },
+    title: 'Home Loan EMI Calculator — EMI, Interest & Prepayment Savings',
+    description:
+      'Free home loan EMI calculator. See your monthly EMI, total interest, year-by-year repayment schedule and how much a prepayment saves.',
+    h1: 'Home Loan EMI Calculator',
+    intro:
+      'Enter the loan amount, interest rate and tenure to see your EMI, total interest and what prepaying saves.',
+    eyebrow: 'Loan calculator',
+    body: homeLoanBody,
+    faq: homeLoanFaq,
+    schema: 'app',
+    priority: '0.8',
+  },
+  {
+    path: '/car-loan-emi-calculator/',
+    file: 'car-loan-emi-calculator/index.html',
+    app: { view: 'loan', mode: 'sip', loan: 'car', subCategory: 'Loan Calculator', features: loanFeatures },
+    title: 'Car Loan EMI Calculator — Monthly EMI & Total Interest',
+    description:
+      'Free car loan EMI calculator. Find your monthly EMI and total interest for any amount, rate and tenure, with a full repayment schedule.',
+    h1: 'Car Loan EMI Calculator',
+    intro:
+      'Know your EMI and the true cost of the loan before you negotiate at the showroom.',
+    eyebrow: 'Loan calculator',
+    body: carLoanBody,
+    faq: carLoanFaq,
+    schema: 'app',
+    priority: '0.8',
+  },
+  {
+    path: '/personal-loan-emi-calculator/',
+    file: 'personal-loan-emi-calculator/index.html',
+    app: { view: 'loan', mode: 'sip', loan: 'personal', subCategory: 'Loan Calculator', features: loanFeatures },
+    title: 'Personal Loan EMI Calculator — EMI for Any Tenure in Months',
+    description:
+      'Free personal loan EMI calculator. Enter amount, interest rate and tenure in months or years to see EMI, total interest and repayment schedule.',
+    h1: 'Personal Loan EMI Calculator',
+    intro:
+      'Compare offers on the EMI and the total interest, not just the headline rate.',
+    eyebrow: 'Loan calculator',
+    body: personalLoanBody,
+    faq: personalLoanFaq,
+    schema: 'app',
+    priority: '0.8',
+  },
+  {
     path: '/sip-vs-swp/',
     file: 'sip-vs-swp/index.html',
     app: null,
@@ -641,7 +977,7 @@ hand from the first to the second, and it goes stale the moment any assumption c
 directly into the SWP calculator&rsquo;s total investment field and stays synchronised as you adjust the inputs.</p>
 
 <h2>How the numbers are produced</h2>
-<p>Three standard formulas, applied exactly as published, with no hidden fees, no assumed fund expense ratio and no tax
+<p>Four standard formulas, applied exactly as published, with no hidden fees, no assumed fund expense ratio and no tax
 deduction:</p>
 <ul>
   <li><strong>SIP</strong> &mdash; future value of an annuity due:
@@ -649,6 +985,8 @@ deduction:</p>
   <li><strong>Lumpsum</strong> &mdash; annual compounding: FV = P &times; (1 + r)<sup>t</sup></li>
   <li><strong>SWP</strong> &mdash; corpus compounded forward less each withdrawal:
       FV = C &times; (1 + i)<sup>n</sup> &minus; W &times; [((1 + i)<sup>n</sup> &minus; 1) &divide; i]</li>
+  <li><strong>Loan EMI</strong> &mdash; reducing balance:
+      EMI = P &times; i &times; (1 + i)<sup>n</sup> &divide; [(1 + i)<sup>n</sup> &minus; 1]</li>
 </ul>
 
 <h2>What it cannot tell you</h2>
@@ -736,6 +1074,9 @@ export const NOT_FOUND = {
   <li><a href="/swp-calculator/">SWP calculator</a></li>
   <li><a href="/lumpsum-calculator/">Lumpsum calculator</a></li>
   <li><a href="/sip-vs-swp/">SIP vs SWP explained</a></li>
+  <li><a href="/home-loan-emi-calculator/">Home loan EMI calculator</a></li>
+  <li><a href="/car-loan-emi-calculator/">Car loan EMI calculator</a></li>
+  <li><a href="/personal-loan-emi-calculator/">Personal loan EMI calculator</a></li>
 </ul>`,
   faq: [],
   schema: 'page',
